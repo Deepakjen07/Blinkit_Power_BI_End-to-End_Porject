@@ -1,0 +1,181 @@
+
+1-AUTO_DATE TABLE:-
+
+Auto_Date = DATATABLE("Options",STRING,{{"⬤"}})
+
+
+2-CALENDER TABLE:-
+
+CALENDER=ADDCOLUMNS(CALENDAR("1/1/"&[Prev_Year],"31/12/"&[Curr_Year]),
+"Year",YEAR([Date]),
+"Month",FORMAT([Date],"mmm"),
+"Month-Yr",FORMAT([Date],"mmm-yy"),
+"Day",FORMAT([Date],"ddd"),
+"MonthIndex",MONTH([Date]),
+"Quater","Q"&QUARTER([Date]))
+
+
+3-CONFIGURATION TABLE:-(MEASURES):-
+
+I. Curr_Year = VAR yr = 2024
+VAR Sys_Yr = YEAR([System_Date])
+RETURN IF(ISFILTERED(Auto_Date[Options]),Sys_Yr,yr)
+
+II. Prev_Year = [Curr_Year]-1
+
+III. Selected_Period = SELECTEDVALUE(Time_Period[Value])
+
+IV. System_Date = NOW()
+
+V. YTDMonth = 
+VAR sysMonth = MONTH([System_Date])
+VAR SelectYTDMonth = SELECTEDVALUE(Manual_Calender[MonthIndex])
+RETURN IF(ISFILTERED(Auto_Date[Options]),sysMonth,SelectYTDMonth)
+
+
+4-DATE_CATEGORY_SELECTION TABLE:-
+
+Date_Category_Selection = {
+    ("Month", NAMEOF('Calendar'[Month]), 0),
+    ("Month-Yr", NAMEOF('Calendar'[Month-Yr]), 1),
+    ("Quater", NAMEOF('Calendar'[Quater]), 2),
+    ("Day", NAMEOF('Calendar'[Day]), 3)
+}
+
+
+5-DYNAMIC_TITLE_TABLE:-(ALL-MEASURES):-
+
+Area_Rank_Title = SELECTEDVALUE(Rank_Table[Options])&"Area"&([Selected_Sale_or_Quantity])
+
+Product_Rank_Title = SELECTEDVALUE(Rank_Table[Options])&"Products"&([Selected_Sale_or_Quantity])
+
+Sale_and_CY_Year_Title = [Select_Timeperiod_Lable]&" "&[Selected_Sale_or_Quantity]&" "&[Curr_Year]
+
+Sale_and_PV_Year_Title = [Select_Timeperiod_Lable]&" "&[Selected_Sale_or_Quantity]&" "&[Prev_Year]
+
+Sale_Options_CY_Year_Title = SELECTEDVALUE(Value_Options[Value_Type])&" "&Configuration[Curr_Year]
+
+Sale_Options_PV_Year_Title = SELECTEDVALUE(Value_Options[Value_Type])&" "&Configuration[Prev_Year]
+
+Select_Timeperiod_Lable = SELECTEDVALUE(Time_Period[Options])
+
+Selected_Sale_or_Quantity = SELECTEDVALUE(Value_Options[Value_Type])
+
+
+
+6-MANUAL_CALENDER TABLE:-
+
+Manual_Calender = 'Calendar'
+
+
+
+7-RANK TABLE:-
+
+Rank_Table = 
+DATATABLE("Options",STRING,"Value",INTEGER,"Sort",INTEGER,
+{
+    {"Default",0,0},
+    {"Top 5",5,1},
+    {"Top 10",10,2},
+    {"Top 20",20,3},
+    {"Top 50",50,4},
+    {"Top 100",100,5}
+}
+)
+
+
+
+8-VALUE-OPTIONS TABLE
+
+Value_Options = SUMMARIZE(Master,Master[Value_Type])
+
+
+9-SALES_MEASURE TABLE(ALL MEASURES):-
+
+Current_Year_Value = var Curryear = [Curr_Year]
+ RETURN
+ CALCULATE([Period_Value],'Calendar'[Year]=Curryear)
+
+CY_PY_Growth% = DIVIDE([Current_Year_Value]-[Previous_Year_Value],[Previous_Year_Value])
+
+Period_Value = 
+VAR Selected_Period = [Selected_Period]
+VAR Period_Value = CALCULATE([Value],'Calendar'[MonthIndex]<=Selected_Period)
+RETURN IF([Selected_Period]=0,[YTD],Period_Value)
+
+Pos_&_Neg_Growth_bg_color = IF([CY_PY_Growth%]>=0,"#00b33c","#cc2900")
+
+Pos_&_Neg_Growth_Txt_color = IF([CY_PY_Growth%]>=0,"#1A620B","#D73C1D")
+
+Previous_Year_Value = VAR Prevyrar = [Prev_Year]
+ RETURN
+ CALCULATE([Period_Value],'Calendar'[Year]=Prevyrar)
+
+TopN_Area_by_Value = 
+ VAR Rank_Value = RANKX(ALL(Master[area]),[Period_Value],,DESC)
+ VAR _rank =SELECTEDVALUE(Rank_Table[Value]) 
+ var rank_TopN_value = 
+ IF(Rank_Value<_rank,[Period_Value],BLANK())
+ RETURN IF(_rank=0,[Period_Value],rank_TopN_value)
+
+TopN_Product_by_Value = 
+ VAR Rank_Value = RANKX(ALL(Master[product_name]),[Period_Value],,DESC)
+ VAR _rank =SELECTEDVALUE(Rank_Table[Value]) 
+ var rank_TopN_value = 
+ IF(Rank_Value<_rank,[Period_Value],BLANK())
+ RETURN IF(_rank=0,[Period_Value],rank_TopN_value)
+
+Value = SUM(Master[Value])
+
+YTD = VAR YTDSysMonth = [YTDMonth]
+ RETURN
+ CALCULATE([Value],'Calendar'[MonthIndex]<=YTDSysMonth)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
