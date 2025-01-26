@@ -1,8 +1,4 @@
-
-
-
-
-![Alt text](\C:\Users\USER\OneDrive\Pictures\Screenshots\Screenshot 2025-01-26 232054.png?raw=true "Optional Title")
+![Image](https://github.com/user-attachments/assets/5a510480-9ae4-4929-9fab-ac99960331b8)
 
 Blinkit Power BI Data Analytics Project
 The Blinkit Power BI Data Analytics Project focuses on analyzing operational and customer data from Blinkit, a leading quick-commerce grocery delivery platform. This project leverages the power of Microsoft Power BI to transform raw data into interactive dashboards and actionable insights, enabling informed decision-making across various business functions.
